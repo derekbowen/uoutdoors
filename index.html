@@ -91,8 +91,8 @@
         var iv = setInterval(function () {
           try {
             f.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 'hero' }), '*');
-            ['setPlaybackRate', 'mute', 'playVideo'].forEach(function (fn) {
-              f.contentWindow.postMessage(JSON.stringify({ event: 'command', func: fn, args: fn === 'setPlaybackRate' ? [0.5] : [] }), '*');
+            [['setPlaybackRate', [0.5]], ['mute', []], ['playVideo', []], ['unloadModule', ['captions']], ['unloadModule', ['cc']]].forEach(function (cmd) {
+              f.contentWindow.postMessage(JSON.stringify({ event: 'command', func: cmd[0], args: cmd[1] }), '*');
             });
           } catch (e) {}
           if (++n > 9) clearInterval(iv);
