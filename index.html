@@ -54,17 +54,17 @@
   if (sel) sel.addEventListener('change', sync);
   if (loc) loc.addEventListener('input', sync);
   sync();
-  // slow-motion looping brand film (after full load; skipped for reduced motion)
+  // slow-motion looping brand film — single clean outdoor span (63-85s),
+  // started via the URL and looped on wall-clock. App segments never play.
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   window.addEventListener('load', function () {
     setTimeout(function () {
-      console.log('[uo] video controller v5.2');
+      console.log('[uo] video controller v6-span');
       var host = document.querySelector('section[aria-labelledby="hero-heading"] div[aria-hidden="true"]');
       if (!host) return;
-      var ZONES = [[12.2, 17.7], [32.2, 37.7], [50.2, 62.8]];
-      var LOOP_END = 85.2;
+      var SPAN_START = 63;
       var f = document.createElement('iframe');
-      f.src = 'https://www.youtube-nocookie.com/embed/dG4hdDbOv8g?autoplay=1&mute=1&loop=1&playlist=dG4hdDbOv8g&controls=0&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&enablejsapi=1&cc_load_policy=0&origin=' + encodeURIComponent(window.location.origin);
+      f.src = 'https://www.youtube-nocookie.com/embed/dG4hdDbOv8g?autoplay=1&mute=1&loop=1&playlist=dG4hdDbOv8g&controls=0&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&enablejsapi=1&cc_load_policy=0&start=' + SPAN_START + '&origin=' + encodeURIComponent(window.location.origin);
       f.title = 'UOutdoors brand film';
       f.setAttribute('allow', 'autoplay; encrypted-media');
       f.setAttribute('tabindex', '-1');
@@ -72,37 +72,14 @@
       var send = function (fn, args) {
         try { f.contentWindow.postMessage(JSON.stringify({ event: 'command', func: fn, args: args || [] }), '*'); } catch (e) {}
       };
-      var gotInfo = false, seeking = false;
-      var baseWall = 0, baseTime = 0;
-      var seek = function (to, dissolveMs) {
-        if (seeking) return;
-        seeking = true;
-        if (dissolveMs) f.style.opacity = '0';
-        send('seekTo', [to, true]);
+      var seekToStart = function () {
+        f.style.opacity = '0';
+        send('seekTo', [SPAN_START, true]);
         send('playVideo');
-        baseWall = performance.now(); baseTime = to;
-        setTimeout(function () { f.style.opacity = '1'; seeking = false; }, dissolveMs || 400);
+        setTimeout(function () { f.style.opacity = '1'; }, 1000);
       };
-      var applyZones = function (time) {
-        if (time >= LOOP_END) { seek(0, 1100); return; }
-        for (var i = 0; i < ZONES.length; i++) {
-          if (time >= ZONES[i][0] && time < ZONES[i][1]) { seek(ZONES[i][1], 0); return; }
-        }
-      };
-      window.addEventListener('message', function (e) {
-        if (typeof e.data !== 'string') return;
-        try {
-          var d = JSON.parse(e.data);
-          var time = d && d.info && d.info.currentTime;
-          if (typeof time !== 'number') return;
-          gotInfo = true;
-          baseWall = performance.now(); baseTime = time;
-          applyZones(time);
-        } catch (err) {}
-      });
       f.addEventListener('load', function () {
         f.style.opacity = '1';
-        baseWall = performance.now(); baseTime = 0;
         var n = 0;
         var hs = setInterval(function () {
           try { f.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 1, channel: 'widget' }), '*'); } catch (e) {}
@@ -112,15 +89,9 @@
           send('setOption', ['captions', 'track', {}]);
           send('unloadModule', ['captions']);
           send('unloadModule', ['cc']);
-          if (++n > 28) clearInterval(hs);
+          if (++n > 24) clearInterval(hs);
         }, 700);
-        // wall-clock enforcer: even if the player never streams time,
-        // estimate it (0.5x playback) and skip the zones anyway.
-        setInterval(function () {
-          if (gotInfo) return;
-          var time = baseTime + ((performance.now() - baseWall) / 1000) * 0.5;
-          applyZones(time);
-        }, 300);
+        setInterval(seekToStart, 42000);
       });
       var overlay = host.querySelector('div');
       host.insertBefore(f, overlay);
