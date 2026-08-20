@@ -8,7 +8,7 @@
 <meta name="robots" content="noindex" />
 <link rel="preload" as="image" href="./real/hero-poster-480.jpg" media="(max-width: 640px)" fetchpriority="high" />
 <link rel="preload" as="image" href="./real/hero-poster.jpg" media="(min-width: 641px)" fetchpriority="high" />
-<link rel="stylesheet" href="./assets/index-B9jDlPkw.css" />
+<link rel="stylesheet" href="./assets/index-D-gvsVdG.css" />
 </head>
 <body>
 
@@ -71,11 +71,17 @@
         try {
           var d = JSON.parse(e.data);
           var time = d && d.info && d.info.currentTime;
-          if (typeof time === 'number' && time >= 55 && !f.dataset.seeking) {
+          if (typeof time !== 'number' || f.dataset.seeking) return;
+          var ZONES = [[12.4, 17.4], [32.4, 37.4], [50.4, 62.4]];
+          var seek = function (to, dissolveMs) {
             f.dataset.seeking = '1';
-            f.style.opacity = '0';
-            f.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'seekTo', args: [0, true] }), '*');
-            setTimeout(function () { f.style.opacity = '1'; delete f.dataset.seeking; }, 1100);
+            if (dissolveMs) f.style.opacity = '0';
+            f.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'seekTo', args: [to, true] }), '*');
+            setTimeout(function () { f.style.opacity = '1'; delete f.dataset.seeking; }, dissolveMs || 350);
+          };
+          if (time >= 85.5) { seek(0, 1100); return; }
+          for (var zi = 0; zi < ZONES.length; zi++) {
+            if (time >= ZONES[zi][0] && time < ZONES[zi][1]) { seek(ZONES[zi][1], 0); return; }
           }
         } catch (err) {}
       });
