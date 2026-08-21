@@ -224,7 +224,7 @@
     setTimeout(function () {
       var host = document.querySelector('section[aria-labelledby="hero-heading"] div[aria-hidden="true"]');
       if (!host) return;
-      var SPAN_START = 63;
+      var SPAN_START = 62;
       var f = document.createElement('iframe');
       f.src = 'https://www.youtube-nocookie.com/embed/dG4hdDbOv8g?autoplay=1&mute=1&loop=1&playlist=dG4hdDbOv8g&controls=0&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&enablejsapi=1&cc_load_policy=0&start=' + SPAN_START + '&origin=' + encodeURIComponent(window.location.origin);
       f.title = 'UOutdoors brand film';
@@ -253,7 +253,7 @@
           send('unloadModule', ['cc']);
           if (++n > 24) clearInterval(hs);
         }, 700);
-        setInterval(seekToStart, 42000);
+        setInterval(seekToStart, 28500);
       });
       var overlay = host.querySelector('div');
       host.insertBefore(f, overlay);
